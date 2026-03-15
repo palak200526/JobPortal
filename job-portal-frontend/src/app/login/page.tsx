@@ -2,11 +2,14 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
     const [role, setRole] = useState<'seeker' | 'recruiter'>('seeker');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+
+    const router = useRouter();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -19,9 +22,17 @@ export default function LoginPage() {
                 body: JSON.stringify({ email, password, role })
             });
             const data = await response.json();
+            
+            if (response.ok) {
+                alert('You have successfully signed in!');
+                router.push('/');
+            } else {
+                alert(`Login failed: ${data.error || 'Unknown error'}`);
+            }
             console.log('Login response:', data);
         } catch (err) {
             console.error('Login error:', err);
+            alert('An error occurred during login. Please try again.');
         }
     };
 

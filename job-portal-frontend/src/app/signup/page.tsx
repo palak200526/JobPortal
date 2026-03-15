@@ -2,9 +2,11 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 export default function SignupPage() {
     const [role, setRole] = useState<'seeker' | 'recruiter'>('seeker');
+    const router = useRouter();
 
     // Common Fields
     const [name, setName] = useState('');
@@ -41,9 +43,17 @@ export default function SignupPage() {
                 body: JSON.stringify(payload)
             });
             const data = await response.json();
+            
+            if (response.ok) {
+                alert('You have successfully signed up!');
+                router.push('/');
+            } else {
+                alert(`Signup failed: ${data.error || 'Unknown error'}`);
+            }
             console.log('Response from backend:', data);
         } catch (err) {
             console.error('Error reaching backend:', err);
+            alert('An error occurred during signup. Please try again.');
         }
     };
 

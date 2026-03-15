@@ -16,27 +16,31 @@ const initDB = async () => {
     try {
         await pool.query(`
       CREATE TABLE IF NOT EXISTS users (
-        id SERIAL PRIMARY KEY,
+        id INT AUTO_INCREMENT PRIMARY KEY,
         name VARCHAR(255) NOT NULL,
         email VARCHAR(255) UNIQUE NOT NULL,
         password VARCHAR(255) NOT NULL,
         role VARCHAR(50) NOT NULL CHECK (role IN ('seeker', 'recruiter')),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
-      
+        `);
+        await pool.query(`
       CREATE TABLE IF NOT EXISTS seeker_profiles (
-        user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+        user_id INT PRIMARY KEY,
         skills TEXT,
-        resume_url TEXT
+        resume_url TEXT,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
       );
-
+        `);
+        await pool.query(`
       CREATE TABLE IF NOT EXISTS recruiter_profiles (
-        user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+        user_id INT PRIMARY KEY,
         company_name VARCHAR(255),
         company_website VARCHAR(255),
-        role_title VARCHAR(255)
+        role_title VARCHAR(255),
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
       );
-    `);
+        `);
         console.log('Database tables initialized.');
     } catch (error) {
         console.error('Error initializing database tables:', error);
@@ -54,8 +58,8 @@ app.post('/api/auth/signup', async (req, res) => {
 
     try {
         // Check if user exists
-        const userCheck = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
-        if (userCheck.rows.length > 0) {
+        const [existingUsers] = await pool.query('SELECT * FROM users WHERE email = ?', [email]);
+        if (existingUsers.length > 0) {
             return res.status(409).json({ error: 'User already exists with this email' });
         }
 
@@ -64,21 +68,23 @@ app.post('/api/auth/signup', async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, saltRounds);
 
         // Insert user
-        const newUser = await pool.query(
-            'INSERT INTO users (name, email, password, role) VALUES ($1, $2, $3, $4) RETURNING id, name, email, role',
+        const [newUserResult] = await pool.query(
+            'INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)',
             [name, email, hashedPassword, role]
         );
-        const userId = newUser.rows[0].id;
+        const userId = newUserResult.insertId;
+
+        const [newUserRows] = await pool.query('SELECT id, name, email, role FROM users WHERE id = ?', [userId]);
 
         // Insert profile based on role
         if (role === 'seeker') {
             await pool.query(
-                'INSERT INTO seeker_profiles (user_id, skills, resume_url) VALUES ($1, $2, $3)',
+                'INSERT INTO seeker_profiles (user_id, skills, resume_url) VALUES (?, ?, ?)',
                 [userId, skills || '', resume_url || '']
             );
         } else if (role === 'recruiter') {
             await pool.query(
-                'INSERT INTO recruiter_profiles (user_id, company_name, company_website, role_title) VALUES ($1, $2, $3, $4)',
+                'INSERT INTO recruiter_profiles (user_id, company_name, company_website, role_title) VALUES (?, ?, ?, ?)',
                 [userId, company_name || '', company_website || '', role_title || '']
             );
         }
@@ -86,7 +92,7 @@ app.post('/api/auth/signup', async (req, res) => {
         // Generate Token
         const token = jwt.sign({ id: userId, role }, JWT_SECRET, { expiresIn: '1d' });
 
-        res.status(201).json({ message: 'User signed up successfully', token, user: newUser.rows[0] });
+        res.status(201).json({ message: 'User signed up successfully', token, user: newUserRows[0] });
     } catch (err) {
         console.error('Signup Error:', err);
         res.status(500).json({ error: 'Server error during signup' });
@@ -102,12 +108,12 @@ app.post('/api/auth/login', async (req, res) => {
     }
 
     try {
-        const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
-        if (result.rows.length === 0) {
+        const [users] = await pool.query('SELECT * FROM users WHERE email = ?', [email]);
+        if (users.length === 0) {
             return res.status(401).json({ error: 'Invalid credentials' });
         }
 
-        const user = result.rows[0];
+        const user = users[0];
         const isMatch = await bcrypt.compare(password, user.password);
 
         if (!isMatch) {
