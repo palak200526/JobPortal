@@ -1,190 +1,116 @@
-import React from 'react';
-import Link from 'next/link';
-import { ThemeToggle } from '../components/ThemeToggle';
+"use client";
 
-export default function Home() {
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+import { ArrowRight, Building2, Search, ShieldCheck, Sparkles, TrendingUp } from "lucide-react";
+
+import { SectionHeading } from "@/components/common/SectionHeading";
+import { Footer } from "@/components/layout/Footer";
+import { Navbar } from "@/components/layout/Navbar";
+import { JobCard } from "@/components/jobs/JobCard";
+import { Category, Job } from "@/lib/types";
+import * as jobService from "@/services/jobService";
+
+export default function HomePage() {
+  const [featuredJobs, setFeaturedJobs] = useState<Job[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [keyword, setKeyword] = useState("");
+  const [location, setLocation] = useState("");
+
+  useEffect(() => {
+    Promise.all([jobService.getFeaturedJobs(), jobService.getCategories()]).then(([jobs, allCategories]) => {
+      setFeaturedJobs(jobs);
+      setCategories(allCategories);
+    }).catch(() => undefined);
+  }, []);
+
   return (
-    <div className="app-container">
-      <nav className="navbar">
-        <div className="logo">Aura<span className="text-gradient">Jobs</span></div>
-        <div className="nav-links">
-          <a href="#">Find Jobs</a>
-          <a href="#">Companies</a>
-          <a href="#">Salaries</a>
-          <a href="#">Resources</a>
-        </div>
-        <div className="nav-actions">
-          <ThemeToggle />
-          <Link href="/login">
-            <button className="btn-ghost" aria-label="Log In">Log In</button>
-          </Link>
-          <Link href="/signup">
-            <button className="btn-primary" aria-label="Sign Up">Sign Up</button>
-          </Link>
-        </div>
-      </nav>
+    <div>
+      <Navbar />
 
-      <main>
-        <header className="hero">
-          <div className="hero-badge" aria-label="New Jobs Added">✨ Over 10k+ new jobs added today</div>
-          <h1 className="hero-title">
-            Discover Your Next<br />
-            <span className="text-gradient">Dream Career</span>
-          </h1>
-          <p className="hero-subtitle">
-            The most advanced platform to discover opportunities, research leading companies, and accelerate your professional growth.
-          </p>
+      <main className="shell">
+        <section className="grid gap-12 py-14 lg:grid-cols-[1.1fr_0.9fr] lg:items-center lg:py-20">
+          <motion.div initial={{ opacity: 0, y: 32 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="max-w-3xl">
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-teal-400/25 bg-teal-400/10 px-4 py-2 text-sm text-teal-200">
+              <Sparkles className="size-4" />
+              End-to-end hiring and job discovery in one clean workspace
+            </div>
+            <h1 className="font-[family-name:var(--font-display)] text-5xl font-semibold tracking-tight text-white md:text-7xl">
+              Find better roles. Hire stronger talent. Move faster with AuraJobs.
+            </h1>
+            <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-300">
+              A full-stack job portal for modern recruiting teams and ambitious candidates, with powerful search, application tracking, and resume workflows built in.
+            </p>
 
-          <div className="search-bar">
-            <div className="search-input-wrapper">
-              <span className="icon" aria-hidden="true">🔍</span>
-              <input type="text" placeholder="Job title, keyword, or company" className="search-input" aria-label="Job Search Input" />
+            <div className="glass-panel mt-8 grid gap-4 p-4 md:grid-cols-[1fr_1fr_auto]">
+              <div className="flex items-center gap-3 rounded-2xl bg-slate-950/45 px-4 py-3">
+                <Search className="size-4 text-teal-300" />
+                <input className="w-full bg-transparent text-sm text-slate-100 outline-none" placeholder="Search roles, skills, companies" value={keyword} onChange={(e) => setKeyword(e.target.value)} />
+              </div>
+              <div className="flex items-center gap-3 rounded-2xl bg-slate-950/45 px-4 py-3">
+                <Building2 className="size-4 text-amber-300" />
+                <input className="w-full bg-transparent text-sm text-slate-100 outline-none" placeholder="Location or remote" value={location} onChange={(e) => setLocation(e.target.value)} />
+              </div>
+              <Link href={`/jobs?keyword=${encodeURIComponent(keyword)}&location=${encodeURIComponent(location)}`} className="inline-flex items-center justify-center rounded-2xl bg-white px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-teal-300">
+                Search jobs
+              </Link>
             </div>
-            <div className="divider" aria-hidden="true"></div>
-            <div className="search-input-wrapper">
-              <span className="icon" aria-hidden="true">📍</span>
-              <input type="text" placeholder="City, state, or remote" className="search-input" aria-label="Location Input" />
-            </div>
-            <button className="btn-primary search-btn" aria-label="Search Jobs">Search Jobs</button>
-          </div>
 
-          <div className="popular-tags">
-            <span aria-hidden="true">Popular:</span>
-            <span className="tag" role="button" tabIndex={0}>Frontend Developer</span>
-            <span className="tag" role="button" tabIndex={0}>Product Manager</span>
-            <span className="tag" role="button" tabIndex={0}>UI/UX Designer</span>
-            <span className="tag" role="button" tabIndex={0}>Data Scientist</span>
-          </div>
-        </header>
+            <div className="mt-8 flex flex-wrap gap-3 text-sm text-slate-300">
+              <span className="chip">Full-time</span>
+              <span className="chip">Remote friendly</span>
+              <span className="chip">Recruiter analytics</span>
+              <span className="chip">Resume-ready applications</span>
+            </div>
+          </motion.div>
 
-        <section className="featured-section" id="categories">
-          <div className="section-header">
-            <h2>Explore Categories</h2>
-            <a href="#" className="link-more" aria-label="View all categories">View all →</a>
-          </div>
+          <motion.div initial={{ opacity: 0, x: 32 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.6 }} className="glass-panel p-6">
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="rounded-[24px] border border-white/10 bg-white/5 p-5">
+                <TrendingUp className="size-8 text-teal-300" />
+                <h3 className="mt-4 text-lg font-semibold text-white">Recruiter momentum</h3>
+                <p className="mt-2 text-sm text-slate-400">Post roles, track applicants, and move decisions without spreadsheet drift.</p>
+              </div>
+              <div className="rounded-[24px] border border-white/10 bg-white/5 p-5">
+                <ShieldCheck className="size-8 text-amber-300" />
+                <h3 className="mt-4 text-lg font-semibold text-white">Secure by default</h3>
+                <p className="mt-2 text-sm text-slate-400">JWT auth, resume validation, rate limiting, and protected route flows.</p>
+              </div>
+            </div>
+            <div className="mt-4 rounded-[28px] border border-white/10 bg-gradient-to-br from-white/10 to-white/[0.02] p-6">
+              <p className="text-sm uppercase tracking-[0.28em] text-teal-300">Why teams switch</p>
+              <div className="mt-4 grid gap-4 text-sm text-slate-200">
+                <div className="flex items-start gap-3"><span className="mt-1 size-2 rounded-full bg-teal-300" /> Role-based dashboards that feel purpose-built instead of generic.</div>
+                <div className="flex items-start gap-3"><span className="mt-1 size-2 rounded-full bg-teal-300" /> Search, application tracking, saved jobs, and resume management connected end to end.</div>
+                <div className="flex items-start gap-3"><span className="mt-1 size-2 rounded-full bg-teal-300" /> Production-ready architecture for deployment on Vercel plus Railway or Render.</div>
+              </div>
+            </div>
+          </motion.div>
+        </section>
 
-          <div className="categories-grid">
-            <div className="category-card" tabIndex={0} role="button">
-              <div className="cat-icon bg-indigo">💻</div>
-              <h3>Software Engineering</h3>
-              <p>4,200+ open positions</p>
-            </div>
-            <div className="category-card" tabIndex={0} role="button">
-              <div className="cat-icon bg-purple">🎨</div>
-              <h3>Design & Creative</h3>
-              <p>1,800+ open positions</p>
-            </div>
-            <div className="category-card" tabIndex={0} role="button">
-              <div className="cat-icon bg-blue">📈</div>
-              <h3>Sales & Marketing</h3>
-              <p>2,400+ open positions</p>
-            </div>
-            <div className="category-card" tabIndex={0} role="button">
-              <div className="cat-icon bg-green">⚙️</div>
-              <h3>Operations</h3>
-              <p>1,200+ open positions</p>
-            </div>
+        <section className="py-6">
+          <SectionHeading eyebrow="Categories" title="Explore high-signal hiring lanes" description="Curated categories help candidates browse faster and keep recruiter job metadata consistent." />
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            {categories.slice(0, 8).map((category) => (
+              <Link key={category.id} href={`/jobs?categoryId=${category.id}`} className="glass-panel card-hover p-6">
+                <div className="chip mb-4">{category.name}</div>
+                <h3 className="text-xl font-semibold text-white">{category.name}</h3>
+                <p className="mt-2 text-sm text-slate-400">Browse active roles and recruiter-posted opportunities in {category.name}.</p>
+              </Link>
+            ))}
           </div>
         </section>
 
-        <section className="featured-section" id="latest-jobs">
-          <div className="section-header">
-            <h2>Latest Featured Jobs</h2>
-            <a href="#" className="link-more" aria-label="View all recent jobs">View all →</a>
-          </div>
-          <div className="jobs-list">
-            <div className="job-card">
-              <div className="job-logo">A</div>
-              <div className="job-details">
-                <h4>Senior Frontend Engineer</h4>
-                <div className="job-meta">
-                  <span>Acme Corp</span> • <span>San Francisco, CA (Hybrid)</span> • <span>$140k - $180k</span>
-                </div>
-                <div className="job-tags">
-                  <span className="tag-sm">React</span>
-                  <span className="tag-sm">TypeScript</span>
-                  <span className="tag-sm">Next.js</span>
-                </div>
-              </div>
-              <button className="btn-secondary" aria-label="Apply Now for Senior Frontend Engineer">Apply Now</button>
-            </div>
-
-            <div className="job-card">
-              <div className="job-logo">G</div>
-              <div className="job-details">
-                <h4>Product Manager</h4>
-                <div className="job-meta">
-                  <span>GlobalTech</span> • <span>Remote</span> • <span>$130k - $160k</span>
-                </div>
-                <div className="job-tags">
-                  <span className="tag-sm">Agile</span>
-                  <span className="tag-sm">B2B SaaS</span>
-                </div>
-              </div>
-              <button className="btn-secondary" aria-label="Apply Now for Product Manager">Apply Now</button>
-            </div>
-
-            <div className="job-card">
-              <div className="job-logo">N</div>
-              <div className="job-details">
-                <h4>Lead UI/UX Designer</h4>
-                <div className="job-meta">
-                  <span>Nexus Design</span> • <span>New York, NY</span> • <span>$120k - $150k</span>
-                </div>
-                <div className="job-tags">
-                  <span className="tag-sm">Figma</span>
-                  <span className="tag-sm">Design Systems</span>
-                </div>
-              </div>
-              <button className="btn-secondary" aria-label="Apply Now for Lead UI/UX Designer">Apply Now</button>
-            </div>
-          </div>
-        </section>
-
-        <section className="cta-section" id="cta">
-          <h2>Ready to level up your career?</h2>
-          <p>Join millions of professionals who have found their next big step with AuraJobs.</p>
-          <div className="cta-buttons">
-            <button className="btn-primary btn-lg" aria-label="Create an Account">Create an Account</button>
-            <button className="btn-secondary btn-lg" aria-label="For Employers">For Employers</button>
+        <section className="py-16">
+          <SectionHeading eyebrow="Featured roles" title="Fresh opportunities from active recruiters" description="A preview of the latest highlighted jobs across the platform." action={<Link href="/jobs" className="inline-flex items-center gap-2 rounded-full border border-white/10 px-4 py-2 text-sm text-slate-100 transition hover:bg-white/10">View all jobs <ArrowRight className="size-4" /></Link>} />
+          <div className="grid gap-5 lg:grid-cols-3">
+            {featuredJobs.map((job) => <JobCard key={job.id} job={job} />)}
           </div>
         </section>
       </main>
 
-      <footer className="footer">
-        <div className="footer-content">
-          <div className="footer-brand">
-            <div className="logo">Aura<span className="text-gradient">Jobs</span></div>
-            <p>Connecting top talent with the world's most innovative companies. Your advanced career acceleration platform.</p>
-          </div>
-          <div className="footer-links">
-            <div className="link-column">
-              <h4>Candidates</h4>
-              <a href="#">Find Jobs</a>
-              <a href="#">Career Advice</a>
-              <a href="#">Resume Builder</a>
-              <a href="#">Job Alerts</a>
-            </div>
-            <div className="link-column">
-              <h4>Employers</h4>
-              <a href="#">Post a Job</a>
-              <a href="#">Talent Search</a>
-              <a href="#">Pricing Platform</a>
-              <a href="#">Case Studies</a>
-            </div>
-            <div className="link-column">
-              <h4>Company</h4>
-              <a href="#">About Us</a>
-              <a href="#">Contact Us</a>
-              <a href="#">Terms of Service</a>
-              <a href="#">Privacy Policy</a>
-            </div>
-          </div>
-        </div>
-        <div className="footer-bottom">
-          <p>&copy; {new Date().getFullYear()} AuraJobs. Designed with precise aesthetics. All rights reserved.</p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

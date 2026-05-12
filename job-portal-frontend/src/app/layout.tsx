@@ -1,31 +1,18 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import "./globals.css";
-import { ThemeProvider } from "../components/ThemeProvider";
 
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
-});
+import "./globals.css";
+import Providers from "./providers";
 
 export const metadata: Metadata = {
-  title: "AuraJobs | Find Your Dream Career",
-  description: "The most advanced platform to discover opportunities and accelerate your career. Find jobs, research companies, and get hired.",
+  title: "AuraJobs",
+  description: "Production-ready job portal for recruiters and job seekers.",
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body
-        className={`${inter.variable} antialiased`}
-      >
-        <ThemeProvider attribute="data-theme" defaultTheme="dark">
-          {children}
-        </ThemeProvider>
+    <html lang="en">
+      <body className="bg-[var(--color-bg)] text-[var(--color-text)] antialiased">
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

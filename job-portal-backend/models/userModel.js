@@ -1,31 +1,47 @@
-const pool = require("../config/db");
+const db = require("../config/db");
 
-exports.findUserByEmail = async (email) => {
-  const [rows] = await pool.query(
-    "SELECT * FROM users WHERE email = ?",
-    [email]
-  );
-  return rows;
-};
+async function createUser(data) {
+  return db.insert("users", data);
+}
 
-exports.createUser = async (name, email, password, role) => {
-  const [result] = await pool.query(
-    "INSERT INTO users (name,email,password,role) VALUES (?,?,?,?)",
-    [name, email, password, role]
-  );
-  return result.insertId;
-};
+async function findUserByEmail(email) {
+  return db.one(`SELECT * FROM users WHERE email = ${db.placeholder(1)}`, [email]);
+}
 
-exports.createSeekerProfile = async (userId, skills, resume) => {
-  await pool.query(
-    "INSERT INTO seeker_profiles (user_id,skills,resume_url) VALUES (?,?,?)",
-    [userId, skills, resume]
+async function findUserById(id) {
+  return db.one(
+    `SELECT id, name, email, role, phone, headline, location, bio, skills,
+            company_name, company_website, role_title, created_at, updated_at
+     FROM users
+     WHERE id = ${db.placeholder(1)}`,
+    [id]
   );
-};
+}
 
-exports.createRecruiterProfile = async (userId, company, website, title) => {
-  await pool.query(
-    "INSERT INTO recruiter_profiles (user_id,company_name,company_website,role_title) VALUES (?,?,?,?)",
-    [userId, company, website, title]
-  );
+async function findUserWithPasswordById(id) {
+  return db.one(`SELECT * FROM users WHERE id = ${db.placeholder(1)}`, [id]);
+}
+
+async function updateUser(id, data) {
+  const whereClause = `id = ${db.placeholder(Object.keys(data).length + 1)}`;
+  await db.update("users", data, whereClause, [id]);
+  return findUserById(id);
+}
+
+async function getUserProfile(id) {
+  const user = await findUserById(id);
+  const resume = await db.one(`SELECT id, file_name, file_path, mime_type, file_size FROM resumes WHERE user_id = ${db.placeholder(1)}`, [id]);
+  return {
+    ...user,
+    resume,
+  };
+}
+
+module.exports = {
+  createUser,
+  findUserByEmail,
+  findUserById,
+  findUserWithPasswordById,
+  updateUser,
+  getUserProfile,
 };

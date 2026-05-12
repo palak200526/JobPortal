@@ -1,0 +1,202 @@
+const categorySeedData = [
+  "Engineering",
+  "Design",
+  "Product",
+  "Marketing",
+  "Data",
+  "Sales",
+  "Finance",
+  "Operations",
+  "Human Resources",
+];
+
+const mysqlSchemaStatements = [
+  `CREATE TABLE IF NOT EXISTS users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(120) NOT NULL,
+    email VARCHAR(190) NOT NULL UNIQUE,
+    password_hash VARCHAR(255) NOT NULL,
+    role VARCHAR(20) NOT NULL,
+    phone VARCHAR(30) DEFAULT NULL,
+    headline VARCHAR(180) DEFAULT NULL,
+    location VARCHAR(180) DEFAULT NULL,
+    bio TEXT DEFAULT NULL,
+    skills TEXT DEFAULT NULL,
+    company_name VARCHAR(180) DEFAULT NULL,
+    company_website VARCHAR(255) DEFAULT NULL,
+    role_title VARCHAR(120) DEFAULT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_users_role (role)
+  )`,
+  `CREATE TABLE IF NOT EXISTS categories (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(120) NOT NULL UNIQUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  )`,
+  `CREATE TABLE IF NOT EXISTS jobs (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    recruiter_id INT NOT NULL,
+    category_id INT DEFAULT NULL,
+    title VARCHAR(180) NOT NULL,
+    company VARCHAR(180) NOT NULL,
+    description TEXT NOT NULL,
+    salary_min INT DEFAULT NULL,
+    salary_max INT DEFAULT NULL,
+    experience_level VARCHAR(60) DEFAULT NULL,
+    experience_years INT DEFAULT NULL,
+    job_type VARCHAR(50) NOT NULL,
+    workplace_type VARCHAR(50) NOT NULL,
+    skills TEXT DEFAULT NULL,
+    deadline DATE DEFAULT NULL,
+    location VARCHAR(180) NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'active',
+    is_featured BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_jobs_recruiter FOREIGN KEY (recruiter_id) REFERENCES users(id) ON DELETE CASCADE,
+    CONSTRAINT fk_jobs_category FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL,
+    INDEX idx_jobs_recruiter (recruiter_id),
+    INDEX idx_jobs_status (status),
+    INDEX idx_jobs_category (category_id),
+    INDEX idx_jobs_location (location)
+  )`,
+  `CREATE TABLE IF NOT EXISTS resumes (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL UNIQUE,
+    file_name VARCHAR(255) NOT NULL,
+    stored_name VARCHAR(255) NOT NULL,
+    file_path VARCHAR(255) NOT NULL,
+    mime_type VARCHAR(120) NOT NULL,
+    file_size INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_resumes_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+  )`,
+  `CREATE TABLE IF NOT EXISTS applications (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    job_id INT NOT NULL,
+    status VARCHAR(30) NOT NULL DEFAULT 'Applied',
+    cover_letter TEXT DEFAULT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_applications_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    CONSTRAINT fk_applications_job FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE CASCADE,
+    UNIQUE KEY uniq_application (user_id, job_id),
+    INDEX idx_applications_status (status)
+  )`,
+  `CREATE TABLE IF NOT EXISTS application_status_history (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    application_id INT NOT NULL,
+    status VARCHAR(30) NOT NULL,
+    note TEXT DEFAULT NULL,
+    changed_by INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_history_application FOREIGN KEY (application_id) REFERENCES applications(id) ON DELETE CASCADE,
+    CONSTRAINT fk_history_user FOREIGN KEY (changed_by) REFERENCES users(id) ON DELETE CASCADE
+  )`,
+  `CREATE TABLE IF NOT EXISTS saved_jobs (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    job_id INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_saved_jobs_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    CONSTRAINT fk_saved_jobs_job FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE CASCADE,
+    UNIQUE KEY uniq_saved_job (user_id, job_id)
+  )`,
+];
+
+const postgresSchemaStatements = [
+  `CREATE TABLE IF NOT EXISTS users (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(120) NOT NULL,
+    email VARCHAR(190) NOT NULL UNIQUE,
+    password_hash VARCHAR(255) NOT NULL,
+    role VARCHAR(20) NOT NULL,
+    phone VARCHAR(30),
+    headline VARCHAR(180),
+    location VARCHAR(180),
+    bio TEXT,
+    skills TEXT,
+    company_name VARCHAR(180),
+    company_website VARCHAR(255),
+    role_title VARCHAR(120),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  )`,
+  `CREATE TABLE IF NOT EXISTS categories (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(120) NOT NULL UNIQUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  )`,
+  `CREATE TABLE IF NOT EXISTS jobs (
+    id SERIAL PRIMARY KEY,
+    recruiter_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    category_id INT REFERENCES categories(id) ON DELETE SET NULL,
+    title VARCHAR(180) NOT NULL,
+    company VARCHAR(180) NOT NULL,
+    description TEXT NOT NULL,
+    salary_min INT,
+    salary_max INT,
+    experience_level VARCHAR(60),
+    experience_years INT,
+    job_type VARCHAR(50) NOT NULL,
+    workplace_type VARCHAR(50) NOT NULL,
+    skills TEXT,
+    deadline DATE,
+    location VARCHAR(180) NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'active',
+    is_featured BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  )`,
+  `CREATE TABLE IF NOT EXISTS resumes (
+    id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
+    file_name VARCHAR(255) NOT NULL,
+    stored_name VARCHAR(255) NOT NULL,
+    file_path VARCHAR(255) NOT NULL,
+    mime_type VARCHAR(120) NOT NULL,
+    file_size INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  )`,
+  `CREATE TABLE IF NOT EXISTS applications (
+    id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    job_id INT NOT NULL REFERENCES jobs(id) ON DELETE CASCADE,
+    status VARCHAR(30) NOT NULL DEFAULT 'Applied',
+    cover_letter TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uniq_application UNIQUE (user_id, job_id)
+  )`,
+  `CREATE TABLE IF NOT EXISTS application_status_history (
+    id SERIAL PRIMARY KEY,
+    application_id INT NOT NULL REFERENCES applications(id) ON DELETE CASCADE,
+    status VARCHAR(30) NOT NULL,
+    note TEXT,
+    changed_by INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  )`,
+  `CREATE TABLE IF NOT EXISTS saved_jobs (
+    id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    job_id INT NOT NULL REFERENCES jobs(id) ON DELETE CASCADE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uniq_saved_job UNIQUE (user_id, job_id)
+  )`,
+  `CREATE INDEX IF NOT EXISTS idx_users_role ON users(role)`,
+  `CREATE INDEX IF NOT EXISTS idx_jobs_recruiter ON jobs(recruiter_id)`,
+  `CREATE INDEX IF NOT EXISTS idx_jobs_status ON jobs(status)`,
+  `CREATE INDEX IF NOT EXISTS idx_jobs_category ON jobs(category_id)`,
+  `CREATE INDEX IF NOT EXISTS idx_jobs_location ON jobs(location)`,
+  `CREATE INDEX IF NOT EXISTS idx_applications_status ON applications(status)`,
+];
+
+module.exports = {
+  mysqlSchemaStatements,
+  postgresSchemaStatements,
+  categorySeedData,
+};

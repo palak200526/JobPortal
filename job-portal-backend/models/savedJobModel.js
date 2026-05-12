@@ -1,37 +1,42 @@
-const pool = require("../config/db");
+const db = require("../config/db");
 
-exports.saveJob = async (seeker_id, job_id) => {
+async function saveJob(userId, jobId) {
+  return db.insert("saved_jobs", {
+    user_id: userId,
+    job_id: jobId,
+  });
+}
 
-  const [result] = await pool.query(
-    "INSERT INTO saved_jobs (seeker_id, job_id) VALUES (?, ?)",
-    [seeker_id, job_id]
+async function getSavedJob(userId, jobId) {
+  return db.one(
+    `SELECT * FROM saved_jobs WHERE user_id = ${db.placeholder(1)} AND job_id = ${db.placeholder(2)}`,
+    [userId, jobId]
   );
+}
 
-  return result;
-
-};
-
-exports.getSavedJobs = async (seeker_id) => {
-
-  const [rows] = await pool.query(
-    `SELECT jobs.id, jobs.title, jobs.company_name, jobs.location
-     FROM saved_jobs
-     JOIN jobs ON jobs.id = saved_jobs.job_id
-     WHERE saved_jobs.seeker_id = ?`,
-    [seeker_id]
+async function removeSavedJob(userId, jobId) {
+  return db.remove(
+    "saved_jobs",
+    `user_id = ${db.placeholder(1)} AND job_id = ${db.placeholder(2)}`,
+    [userId, jobId]
   );
+}
 
-  return rows;
-
-};
-
-exports.deleteSavedJob = async (id) => {
-
-  const [result] = await pool.query(
-    "DELETE FROM saved_jobs WHERE id = ?",
-    [id]
+async function getSavedJobs(userId) {
+  return db.all(
+    `SELECT sj.id, sj.created_at, j.id AS job_id, j.title, j.company, j.location, j.job_type,
+            j.workplace_type, j.salary_min, j.salary_max, j.deadline
+     FROM saved_jobs sj
+     INNER JOIN jobs j ON j.id = sj.job_id
+     WHERE sj.user_id = ${db.placeholder(1)}
+     ORDER BY sj.created_at DESC`,
+    [userId]
   );
+}
 
-  return result;
-
+module.exports = {
+  saveJob,
+  getSavedJob,
+  removeSavedJob,
+  getSavedJobs,
 };

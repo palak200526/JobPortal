@@ -1,0 +1,12 @@
+:root {
+  --font-body: "Aptos", "Segoe UI Variable Display", "Segoe UI", "Helvetica Neue", sans-serif;
+  --font-display: "Bahnschrift", "Trebuchet MS", "Arial Narrow", sans-serif;
+  --color-bg: #06101d;
+  --color-surface: #0f1d33;
+  --color-surface-2: #14243b;
+  --color-text: #eef6ff;
+  --color-muted: #8ba3c0;
+  --color-accent: #14b8a6;
+  --color-accent-2: #f59e0b;
+  --color-danger: #fb7185;
+}

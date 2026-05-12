@@ -1,27 +1,18 @@
-const pool = require("../config/db");
+const asyncHandler = require("../utils/asyncHandler");
+const resumeService = require("../services/resumeService");
+const { sendSuccess } = require("../utils/apiResponse");
 
-exports.uploadResume = async (req, res) => {
+exports.uploadResume = asyncHandler(async (req, res) => {
+  const resume = await resumeService.uploadResume(req.user.id, req.file);
+  sendSuccess(res, "Resume uploaded successfully", resume, 201);
+});
 
-  try {
+exports.getMyResume = asyncHandler(async (req, res) => {
+  const resume = await resumeService.getResumeByUser(req.user.id);
+  sendSuccess(res, "Resume fetched", resume);
+});
 
-    const userId = req.body.user_id;
-    const resumePath = req.file.filename;
-
-    await pool.query(
-      "UPDATE seeker_profiles SET resume_url = ? WHERE user_id = ?",
-      [resumePath, userId]
-    );
-
-    res.json({
-      message: "Resume uploaded successfully",
-      file: resumePath
-    });
-
-  } catch (error) {
-
-    console.error(error);
-    res.status(500).json({ error: "Upload failed" });
-
-  }
-
-};
+exports.deleteResume = asyncHandler(async (req, res) => {
+  await resumeService.deleteResume(req.user.id);
+  sendSuccess(res, "Resume deleted successfully");
+});

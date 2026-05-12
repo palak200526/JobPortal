@@ -1,30 +1,33 @@
 {
   "name": "job-portal-backend",
   "version": "1.0.0",
-  "description": "",
-  "main": "app.js",
+  "description": "AuraJobs production backend",
+  "main": "index.js",
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "lint": "node -e \"console.log('No lint script configured for backend')\"",
+    "test": "node -e \"console.log('No backend tests configured yet')\""
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "aurajobs",
+    "express",
+    "job-portal"
+  ],
+  "author": "OpenAI Codex",
   "license": "ISC",
   "dependencies": {
-    "bcrypt": "^6.0.0",
+    "bcryptjs": "^2.4.3",
     "cors": "^2.8.6",
     "dotenv": "^17.3.1",
-    "express": "^5.2.1",
-    "jsonwebtoken": "^9.0.3",
-<<<<<<< Updated upstream
+    "express": "^4.21.2",
+    "express-rate-limit": "^7.5.0",
+    "express-validator": "^7.2.1",
+    "helmet": "^8.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^2.0.2",
     "mysql2": "^3.19.1",
-    "pg": "^8.20.0"
-=======
-    "multer": "^2.1.1",
-    "mysql2": "^3.19.1",
-    "nodemailer": "^8.0.2"
->>>>>>> Stashed changes
+    "pg": "^8.16.3"
   },
   "devDependencies": {
     "nodemon": "^3.1.14"
